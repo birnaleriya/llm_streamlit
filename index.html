@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Law Enforcement Chatbot</title>
+    <!-- We have removed the Tailwind CDN script and replaced it with this style block -->
+    <style>
+        /* Basic CSS Reset & Font Import */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        *, *::before, *::after {
+            box-sizing: border-box;
+            border-width: 0;
+            border-style: solid;
+            border-color: #e5e7eb;
+        }
+        html {
+            line-height: 1.5;
+            -webkit-text-size-adjust: 100%;
+            -moz-tab-size: 4;
+            tab-size: 4;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            margin: 0;
+            line-height: inherit;
+            background-color: #f0f4f8; /* bg-gray-100 */
+        }
+        
+        /* Layout and Container Styles */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .chat-box {
+            flex-grow: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        header {
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            text-align: center;
+        }
+        footer {
+            background-color: #ffffff;
+            border-top: 1px solid #e5e7eb;
+            padding: 1rem;
+        }
+        form {
+            display: flex;
+            align-items: center;
+            gap: 1rem; /* space-x-4 */
+            max-width: 80rem; /* max-w-4xl */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Message Bubble Styles */
+        .chat-message {
+            display: flex;
+            max-width: 75%;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .user-message {
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .bot-message {
+            align-self: flex-start;
+        }
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+        }
+        .user-message .message-content {
+            background-color: #007bff;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .bot-message .message-content {
+            background-color: #ffffff;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Model Tag Styles */
+        .model-tag {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            position: absolute;
+            top: -10px;
+            right: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .model-mistral { background-color: #86efac; color: #15803d; }
+        .model-phi3 { background-color: #93c5fd; color: #1e40af; }
+        .model-system_error { background-color: #fca5a5; color: #991b1b; }
+
+        /* Form & Input Styles */
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 0.75rem; /* p-3 */
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            border-radius: 9999px; /* rounded-full */
+            transition: all 0.2s;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            --tw-ring-color: #3b82f6; /* ring-blue-500 */
+            --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+            box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+        }
+        button {
+            background-color: #2563eb; /* bg-blue-600 */
+            color: white;
+            border-radius: 9999px; /* rounded-full */
+            padding: 0.75rem; /* p-3 */
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #1d4ed8; /* hover:bg-blue-700 */
+        }
+        button:focus {
+             outline: none;
+            --tw-ring-color: #3b82f6; /* ring-blue-500 */
+            --tw-ring-offset-color: #fff;
+            --tw-ring-offset-width: 2px;
+            --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+            box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+        }
+        
+        /* Typography */
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .font-bold { font-weight: 700; }
+        .text-gray-800 { color: #1f2937; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-gray-500 { color: #6b7280; }
+        
+        /* Typing Indicator & Animations */
+        .typing-indicator { display: flex; align-items: center; padding: 12px 16px; }
+        .typing-indicator span {
+            height: 8px; width: 8px; margin: 0 2px;
+            background-color: #a0aec0; border-radius: 50%;
+            display: inline-block; animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <header>
+            <h1 class="text-2xl font-bold text-gray-800">Cyber Law Enforcement Chatbot</h1>
+            <p class="text-sm text-gray-500">Powered by Mistral & Phi-3</p>
+        </header>
+
+        <div id="chat-box" class="chat-box">
+            <!-- Initial bot message -->
+            <div class="chat-message bot-message">
+                <div class="message-content">
+                    <p>Hello! I am your Cyber Law assistant. How can I help you today?</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="bg-white border-t border-gray-200 p-4">
+            <form id="chat-form">
+                <input type="text" id="user-input" placeholder="Ask about cyber law, analyze logs, or interpret IT Acts...">
+                <button type="submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const chatBox = document.getElementById('chat-box');
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userText = userInput.value.trim();
+            if (userText === '') return;
+
+            appendMessage(userText, 'user');
+            userInput.value = '';
+            
+            const typingIndicator = showTypingIndicator();
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: userText })
+                });
+
+                typingIndicator.remove();
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                appendMessage(data.response, 'bot', data.model_used);
+
+            } catch (error) {
+                typingIndicator.remove();
+                console.error('Fetch error:', error);
+                appendMessage('Sorry, I am having trouble connecting to the server. Please try again later.', 'bot', 'system_error');
+            }
+        });
+
+        function appendMessage(text, sender, model = '') {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.classList.add('chat-message', `${sender}-message`);
+            const messageContent = document.createElement('div');
+            messageContent.classList.add('message-content');
+            const textElement = document.createElement('p');
+            textElement.innerText = text;
+            messageContent.appendChild(textElement);
+            if (sender === 'bot' && model) {
+                const modelTag = document.createElement('span');
+                modelTag.classList.add('model-tag', `model-${model.toLowerCase()}`);
+                modelTag.innerText = model;
+                messageContent.appendChild(modelTag);
+            }
+            messageWrapper.appendChild(messageContent);
+            chatBox.appendChild(messageWrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.classList.add('chat-message', 'bot-message');
+            typingDiv.innerHTML = `
+                <div class="typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            chatBox.appendChild(typingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            return typingDiv;
+        }
+    </script>
+
+</body>
+</html>
+

@@ -1,0 +1,15 @@
+langchain
+langchain-community
+flask
+flask-cors
+ollama
+faiss-cpu 
+faiss-cpu
+pypdf
+python-docx
+unstructured
+python-pptx
+langchain-huggingface
+sentence-transformers
+torch
+transformers
